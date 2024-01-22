@@ -1,4 +1,4 @@
-package com.apppppp.bluetoothclassictest
+package com.apppppp.bluetoothclassictest.model
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -7,7 +7,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.activity.ComponentActivity
 
-class BluetoothPermissionHandler(
+/**
+ * AndroidのBluetoothパーミッションをリクエストするクラス
+ */
+class BTPermissionHandler(
     private val activity: ComponentActivity,
     private val onPermissionGranted: () -> Unit,
     private val onPermissionDenied: () -> Unit

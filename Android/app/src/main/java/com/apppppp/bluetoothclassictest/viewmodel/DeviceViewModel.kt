@@ -3,13 +3,11 @@ package com.apppppp.bluetoothclassictest.viewmodel
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.util.Log
-import android.widget.Toast
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.apppppp.bluetoothclassictest.BluetoothHelper
-import com.apppppp.bluetoothclassictest.model.BluetoothDeviceInfo
+import com.apppppp.bluetoothclassictest.model.BTClientManager
+import com.apppppp.bluetoothclassictest.model.BTDeviceInfo
+import com.apppppp.bluetoothclassictest.model.BTRecieveData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -20,26 +18,31 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.sql.Timestamp
 
+/**
+ * デバイス一覧画面およびデータ受信画面に共通のViewModel
+ */
 class DeviceViewModel : ViewModel() {
 
-    private val bluetoothHelper: BluetoothHelper = BluetoothHelper()
+    private var _btClientManager: BTClientManager = BTClientManager()
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
-
-    private val _devicesInfo = MutableStateFlow<List<BluetoothDeviceInfo>>(emptyList())
-    val devicesInfo: StateFlow<List<BluetoothDeviceInfo>> = _devicesInfo
+    private val _devicesInfo = MutableStateFlow<List<BTDeviceInfo>>(emptyList())
+    val devicesInfo: StateFlow<List<BTDeviceInfo>> = _devicesInfo
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _receivedData = MutableLiveData<String>()
-    val receivedData: LiveData<String> = _receivedData
+    private val _receivedDataList = MutableStateFlow<List<BTRecieveData>>(emptyList())
+    val receivedDataList: StateFlow<List<BTRecieveData>> = _receivedDataList.asStateFlow()
 
     private var periodicLoadJob: Job? = null
+
 
     fun loadPairedDevicesPeriodically(repeatInterval: Long) {
         periodicLoadJob = viewModelScope.launch {
             while (isActive) {
+                Log.d("mopi", "loadPairedDevicesPeriodically")
                 loadPairedDevices()
                 delay(repeatInterval)
             }
@@ -53,22 +56,23 @@ class DeviceViewModel : ViewModel() {
 
     private fun loadPairedDevices() {
         viewModelScope.launch {
-            val pairedDevices = pairedDevicesInfo
-            _devicesInfo.value = pairedDevices
-            _devicesInfo.value.map { device -> "${device.name} (${device.address})" }
-
+            _devicesInfo.value = pairedDevicesInfo
         }
     }
 
 
-    val pairedDevicesInfo: List<BluetoothDeviceInfo>
+    val pairedDevicesInfo: List<BTDeviceInfo>
         @SuppressLint("MissingPermission")
         get() = bluetoothAdapter?.bondedDevices?.map { device ->
-            BluetoothDeviceInfo(
+            val isConnected = _btClientManager.isConnected(device.address)
+            Log.d("mopi", "device: ${device.address}")
+            Log.d("mopi", "isConnected: $isConnected")
+
+            BTDeviceInfo(
                 name = device.name ?: "N/A",
                 address = device.address,
                 isPaired = true,
-                isConnected = false
+                isConnected = isConnected
             )
         } ?: emptyList()
 
@@ -78,11 +82,12 @@ class DeviceViewModel : ViewModel() {
             _isLoading.value = true // ローディング開始
 
             // addDummyDevice()
+            val deviceAddress = _devicesInfo.value[index].address
 
             // 接続処理を行う
             withContext(Dispatchers.IO) { // バックグラウンドスレッドでの実行
                 try {
-                    bluetoothHelper.connectToDevice(_devicesInfo.value[index].address)
+                    _btClientManager.connectToDevice(deviceAddress)
                 } catch (e: IOException) {
                     e.printStackTrace()
                 } catch (e: IllegalArgumentException) {
@@ -92,11 +97,10 @@ class DeviceViewModel : ViewModel() {
 
             _isLoading.value = false // ローディング終了
 
-            val isConnected = bluetoothHelper.isConnected
+            val isConnected = _btClientManager.isConnected(deviceAddress)
 
             if (isConnected) {
-                startReceivingData()
-//                _receivedData.value = bluetoothHelper.receiveData()
+                startReceivingData(deviceAddress)
             }
 
 
@@ -111,17 +115,26 @@ class DeviceViewModel : ViewModel() {
     /**
      * 端末からデータ受信開始
      */
-    private fun startReceivingData() {
+    private fun startReceivingData(deviceAddress: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            while (bluetoothHelper.isConnected) {
+            while (_btClientManager.isConnected(deviceAddress)) {
                 try {
-                    val data = bluetoothHelper.receiveData()
-                    if (data != null) {
-                        //NOTE LiveDataの場合はpostValueを使用
-                        _receivedData.postValue(data)
+                    val rawData = _btClientManager.receiveDataFromDevice(deviceAddress)
+                    val deviceName: String? = _btClientManager.deviceName(deviceAddress)
 
-                        //NOTE StateFlowの場合は値を直接更新
-                        // _receivedData.value = data
+                    if (rawData != null) {
+                        /** NOTE
+                         * LiveDataの場合はpostValueを使用
+                         * StateFlowの場合は値を直接更新
+                         */
+
+                        val recieveData = BTRecieveData(
+                            deviceName,
+                            deviceAddress,
+                            rawData,
+                            Timestamp(System.currentTimeMillis())
+                        )
+                        _receivedDataList.value += listOf(recieveData)
                     }
                 } catch (e: IOException) {
                     e.printStackTrace()
@@ -133,7 +146,7 @@ class DeviceViewModel : ViewModel() {
 
     // StateFlowで更新されるかどうかのテスト用
     private fun addDummyDevice() {
-        val dummyDeviceInfo = BluetoothDeviceInfo(
+        val dummyDeviceInfo = BTDeviceInfo(
             name = "Dummy Device",
             address = "FF:FF:FF:FF:FF:FF",
             isPaired = false,

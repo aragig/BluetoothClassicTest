@@ -11,7 +11,7 @@ esp_bt_pin_code_t pin_code = {1, 2, 3, 4}; // ここでPINコードを設定
 void setup() {
     Serial.begin(115200);
 
-    SerialBT.begin("Bluetooth Classic Test"); // Bluetoothデバイス名を設定
+    SerialBT.begin("BTC Device 01"); // Bluetoothデバイス名を設定
     esp_bt_gap_register_callback(gap_callback);
 
     // Variable PINタイプを使用して、ユーザーがPINコードを入力できるようにする

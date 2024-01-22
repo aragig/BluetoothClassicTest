@@ -1,4 +1,4 @@
-package com.apppppp.bluetoothclassictest.screens
+package com.apppppp.bluetoothclassictest.screens.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,7 +15,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
-import com.apppppp.bluetoothclassictest.model.BluetoothDeviceInfo
+import com.apppppp.bluetoothclassictest.model.BTDeviceInfo
+import com.apppppp.bluetoothclassictest.screens.PairedDeviceNotFoundSnackbar
 
 @Composable
 fun LoadingView(modifier: Modifier = Modifier) {
@@ -30,10 +31,10 @@ fun LoadingView(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun DeviceListView(devicesInfo: List<BluetoothDeviceInfo>, onDeviceClick: (Int) -> Unit, isLoading: Boolean) {
+fun DeviceListView(devicesInfo: List<BTDeviceInfo>, onDeviceClick: (Int) -> Unit, isLoading: Boolean, onSettingsClick: () -> Unit) {
     Box {
         if(devicesInfo.isEmpty()) {
-            PairedDeviceNotFoundSnackbar()
+            PairedDeviceNotFoundSnackbar(onSettingsClick)
         }
 
         LazyColumn {

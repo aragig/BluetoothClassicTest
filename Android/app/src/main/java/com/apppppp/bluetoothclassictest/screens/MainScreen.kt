@@ -16,6 +16,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 
+/**
+ * ホーム画面
+ */
 @Composable
 fun MainScreen(navController: NavHostController) {
     Box(modifier = Modifier.fillMaxSize()) {

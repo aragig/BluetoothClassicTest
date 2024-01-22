@@ -1,16 +1,17 @@
 package com.apppppp.bluetoothclassictest.screens
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.apppppp.bluetoothclassictest.screens.views.DeviceListView
 import com.apppppp.bluetoothclassictest.viewmodel.DeviceViewModel
 
 @Composable
 fun DeviceScreen(
     deviceViewModel: DeviceViewModel,
+    openBluetoothSettings: () -> Unit
 ) {
 
     val devicesInfo by deviceViewModel.devicesInfo.collectAsState()
@@ -35,7 +36,8 @@ fun DeviceScreen(
     DeviceListView(
         devicesInfo = devicesInfo,
         onDeviceClick = handleDeviceClick,
-        isLoading = isLoading
+        isLoading = isLoading,
+        onSettingsClick = openBluetoothSettings
     )
 
 }

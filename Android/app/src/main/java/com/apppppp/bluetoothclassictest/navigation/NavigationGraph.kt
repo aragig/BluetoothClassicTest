@@ -14,7 +14,9 @@ import com.apppppp.bluetoothclassictest.viewmodel.DeviceViewModel
 
 @Composable
 fun NavigationGraph(
-    navController: NavHostController) {
+    navController: NavHostController,
+    openBluetoothSettings: () -> Unit
+    ) {
     val deviceViewModel: DeviceViewModel = viewModel()
 
     NavHost(navController = navController, startDestination = "main") {
@@ -22,7 +24,7 @@ fun NavigationGraph(
             MainScreen(navController)
         }
         composable("deviceList") {
-            DeviceScreen(deviceViewModel)
+            DeviceScreen(deviceViewModel, openBluetoothSettings)
         }
         composable("epcReader") {
             ReceiveDataScreen(deviceViewModel)

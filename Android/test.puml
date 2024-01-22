@@ -1,0 +1,69 @@
+@startuml
+class com.apppppp.bluetoothclassictest.model.BTClientManager {
++ Boolean isConnected(String)
++ void connectToDevice(String)
++ String? deviceName(String)
++ void sendDataToDevice(String,String)
++ String? receiveDataFromDevice(String)
++ void disconnectDevice(String)
++ void disconnectAllDevices()
+}
+note top of com.apppppp.bluetoothclassictest.model.BTClientManager
+/**
+ * デバイスとの接続を複数管理するクラス
+ */
+end note
+
+class com.apppppp.bluetoothclassictest.MainActivity {
++ void onCreate(Bundle?)
++ void onResume()
+}
+class com.apppppp.bluetoothclassictest.model.BTClient {
++ Boolean isConnected
++ String? deviceName
++ String? deviceAddress
++ void connectToDevice(String)
++ String? receiveData()
++ void sendData(String)
++ void closeConnection()
+}
+note top of com.apppppp.bluetoothclassictest.model.BTClient
+/**
+ * Bluetoothのデバイスとの接続を管理するクラス
+ */
+end note
+
+class com.apppppp.bluetoothclassictest.viewmodel.DeviceViewModel {
++ StateFlow<List<BTDeviceInfo>> devicesInfo
++ StateFlow<Boolean> isLoading
++ StateFlow<List<BTRecieveData>> receivedDataList
++ List<BTDeviceInfo> pairedDevicesInfo
++ void loadPairedDevicesPeriodically(Long)
++ void cancelPeriodicLoading()
++ void onDeviceClicked(Int)
+}
+note top of com.apppppp.bluetoothclassictest.viewmodel.DeviceViewModel
+/**
+ * デバイス一覧画面およびデータ受信画面に共通のViewModel
+ */
+end note
+
+class com.apppppp.bluetoothclassictest.model.BTDeviceInfo {
+}
+class com.apppppp.bluetoothclassictest.model.BTRecieveData {
+}
+class com.apppppp.bluetoothclassictest.model.BTPermissionHandler {
++ void setupPermissionLauncher()
++ void requestBluetoothPermissions()
+}
+note top of com.apppppp.bluetoothclassictest.model.BTPermissionHandler
+/**
+ * AndroidのBluetoothパーミッションをリクエストするクラス
+ */
+end note
+
+
+
+androidx.activity.ComponentActivity <|-- com.apppppp.bluetoothclassictest.MainActivity
+androidx.lifecycle.ViewModel <|-- com.apppppp.bluetoothclassictest.viewmodel.DeviceViewModel
+@enduml

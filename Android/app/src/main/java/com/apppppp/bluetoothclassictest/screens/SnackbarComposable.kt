@@ -21,8 +21,14 @@ fun PermissionDeniedSnackbar(onSettingsClick: () -> Unit) {
 }
 
 @Composable
-fun PairedDeviceNotFoundSnackbar() {
-    Snackbar() {
+fun PairedDeviceNotFoundSnackbar(onSettingsClick: () -> Unit) {
+    Snackbar(
+        action = {
+            Button(onClick = onSettingsClick) {
+                Text("設定へ")
+            }
+        }
+    ) {
         Text("Bluetoothデバイスとペアリングしてください。")
     }
 }

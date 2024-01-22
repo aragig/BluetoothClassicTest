@@ -1,6 +1,5 @@
 package com.apppppp.bluetoothclassictest
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -10,16 +9,17 @@ import androidx.navigation.compose.rememberNavController
 import com.apppppp.bluetoothclassictest.navigation.NavigationGraph
 import com.apppppp.bluetoothclassictest.ui.theme.BluetoothClassicTestTheme
 import android.provider.Settings
+import com.apppppp.bluetoothclassictest.model.BTPermissionHandler
 import com.apppppp.bluetoothclassictest.screens.PermissionDeniedSnackbar
 
 
 class MainActivity : ComponentActivity() {
-    private lateinit var bluetoothPermissionHandler: BluetoothPermissionHandler
+    private lateinit var btPermissionHandler: BTPermissionHandler
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        bluetoothPermissionHandler = BluetoothPermissionHandler(
+        btPermissionHandler = BTPermissionHandler(
             activity = this,
             onPermissionGranted = {
                 loadUI()
@@ -29,14 +29,14 @@ class MainActivity : ComponentActivity() {
                 showPermissionDeniedView()
             }
         )
-        bluetoothPermissionHandler.setupPermissionLauncher()
+        btPermissionHandler.setupPermissionLauncher()
 //        bluetoothPermissionHandler.requestBluetoothPermissions()
 
     }
 
     override fun onResume() {
         super.onResume()
-        bluetoothPermissionHandler.requestBluetoothPermissions()
+        btPermissionHandler.requestBluetoothPermissions()
     }
 
     private fun loadUI() {
@@ -44,7 +44,8 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             BluetoothClassicTestTheme {
                 NavigationGraph(
-                    navController = navController
+                    navController = navController,
+                    openBluetoothSettings = { openBluetoothSettings() }
                 )
             }
         }
@@ -60,6 +61,11 @@ class MainActivity : ComponentActivity() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             data = Uri.fromParts("package", packageName, null)
         }
+        startActivity(intent)
+    }
+
+    private fun openBluetoothSettings() {
+        val intent = Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
         startActivity(intent)
     }
 
